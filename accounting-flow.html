@@ -293,6 +293,25 @@ Cash Recognition,R,HW Revenue,cr,200
             
             var journal_lines = parsed.map(function(o) {return o.je_line_class;});
             journal_lines.forEach(create_joint_mouse_effects);
+
+            // Create highlight effects when mouse over taccount header
+            function create_account_mouse_effects(class_name) {
+                class_name = '.' + class_name;
+                d3.selectAll(class_name + " thead")
+                    .on('mouseover', function() { 
+                        d3.selectAll(class_name + " thead, .jes tr" + class_name)
+                            .style('background-color', 'lightgreen');
+                        })
+                    .on('mouseout', function() { 
+                        d3.selectAll(class_name + " thead, .jes tr" + class_name)
+                            .style('background-color', null);
+                        });
+            }
+            var account_taccounts = d3.nest()
+                .key(function (d) {return d.account_class;})
+                .entries(parsed)
+                .map(function(o) { return o.key; });
+            account_taccounts.forEach(create_account_mouse_effects);
         </script>
     </body>
 </html>
