@@ -104,15 +104,18 @@
         </div>
 <pre id="csvdata">
 je_label,account_type,account,dr_cr,amount
-Book Revenue,A,Trade A/R,dr,150
-Book Revenue,R,HW Revenue,cr,100
-Book Revenue,R,SW Revenue,cr,50
+Book Revenue with deferral,A,Trade A/R,dr,150
+Book Revenue with deferral,R,HW Revenue,cr,92
+Book Revenue with deferral,R,SW Revenue,cr,50
+Book Revenue with deferral,L,Deferred Revenue,cr,8
 Book COS,C,HW COS,dr,75
 Book COS,A,Inventory,cr,75
 Receive Cash,A,Cash,dr,150
 Receive Cash,A,Trade A/R,cr,150
-Cash Recognition,A,Cash,dr,200
-Cash Recognition,R,HW Revenue,cr,200
+External Commission,E,External Commissions,dr,5
+External Commission,A,Trade A/R,cr,5
+Equity Check,OE,Equity,dr,7
+Equity Check,OE,Equity,cr,7
 </pre>
         <script>
             function make_safe(text) {
