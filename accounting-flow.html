@@ -213,6 +213,7 @@ Cash Recognition,R,HW Revenue,cr,200
                     .data(function(d) { return d.values; })
                     .enter()
                     .append('tr')
+                    .property('className', function(d) {return d.je_line_class;})
                     .selectAll('td')
                     .data(function (d) {
                         if (d.dr_cr === 'dr') {
