@@ -113,8 +113,9 @@ Cash Recognition,R,HW Revenue,cr,200
             // Add attributes to all lines: visible labels and css classes
             function add_attributes(d, i) {
                 // For each je_line
-                d.je_line_class = "(" + String.fromCharCode(65+i) + ")";
-                d.je_line_label = d.je_line_class;
+                var next_char = String.fromCharCode(65+i);
+                d.je_line_class = 'je_line_class_' + next_char;
+                d.je_line_label = "(" + next_char + ")";
 
                 // For each JE (note je_label already determined)
                 d.je_class = "je_" + make_safe(d.je_label);
