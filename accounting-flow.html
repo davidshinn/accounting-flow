@@ -31,7 +31,7 @@
                 font: 14px sans-serif;
                 text-align: center;
             }
-            .taccount tbody tr td {
+            .taccount tbody tr td, .taccount tfoot tr td {
                 width: 50px;
                 font: 10px monospace;
             }
@@ -42,6 +42,17 @@
             .taccount tbody tr td:nth-child(2) {
                 border-left: 1px solid black;
                 text-align: right;
+            }
+            .taccount tfoot {
+                border-top: 1px solid black;
+            }
+            .taccount tfoot tr td:nth-child(1) {
+                border-right: 1px solid black;
+                text-align: right;
+            }
+            .taccount tfoot tr td:nth-child(2) {
+                border-left: 1px solid black;
+                text-align: left;
             }
             .jes {
                 margin-bottom: 10px;
@@ -232,6 +243,40 @@ Cash Recognition,R,HW Revenue,cr,200
             create_taccounts('#revenue', 'R');
             create_taccounts('#cos', 'C');
             create_taccounts('#expense', 'E');
+
+            // Adding t account sum lines
+            taccount_sums = d3.nest().key(function(d) {return d.account_class})
+                .rollup(function(leaves) {
+                    return {'total_amount': d3.sum(leaves,
+                        function(d) {
+                            if (d.dr_cr === 'cr') {
+                                return -1*d.amount;
+                            } else {
+                                return d.amount;
+                            }
+                    })}
+                })
+                .entries(parsed);
+
+            function add_footer(taccount_sum_object) {
+                d3.select('.' + taccount_sum_object.key)
+                  .append('tfoot')
+                  .append('tr')
+                    .selectAll('td')
+                    .data(function() {
+                        var amount = taccount_sum_object.values.total_amount;
+                        if (amount >= 0) {
+                            return [amount, null];
+                        } else {
+                            return [null, -amount];
+                        }
+                    })
+                    .enter()
+                  .append('td')
+                    .text(function(d) { return d; });
+
+            }
+            taccount_sums.forEach(add_footer);
 
             function create_joint_mouse_effects(class_name) {
                 class_name = '.' + class_name;
