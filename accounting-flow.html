@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Accounting Flow</title>
+        <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+        <style>
+            #csvdata {
+                display: none;
+            }
+            table {
+                border-collapse: collapse;
+            }
+            .taccount {
+                margin: 10px;
+                float: left;
+            }
+            body {
+              font: 10px sans-serif;
+            }
+            th {
+                border-bottom: 1px solid black;
+            }
+            .taccount th {
+                text-align: center;
+            }
+            .jes th {
+                text-align: left;
+            }
+            .title {
+                font: 14px sans-serif;
+                text-align: center;
+            }
+            .taccount tbody tr td {
+                width: 50px;
+                font: 10px monospace;
+            }
+            .taccount tbody tr td:nth-child(1) {
+                border-right: 1px solid black;
+                text-align: left;
+            }
+            .taccount tbody tr td:nth-child(2) {
+                border-left: 1px solid black;
+                text-align: right;
+            }
+            .jes {
+                margin-bottom: 10px;
+            }
+            .jes tbody tr td:nth-child(1) {
+                width: 150px;
+            }
+            .jes tbody tr td:nth-child(2) {
+                width: 30px;
+                text-align: right;
+                font: 10px monospace;
+            }
+            .jes tbody tr td:nth-child(3) {
+                width: 30px;
+                text-align: right;
+                font: 10px monospace;
+            }
+            .jes tbody tr td:nth-child(4) {
+                text-align: right;
+                font: 10px monospace;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div class="title" style="margin: 10px; padding: 0px; float: left; width: 375px; height: 5px;">
+            Balance Sheet
+        </div>
+        <div class="title" style="margin: 10px; padding: 0px; float: left; width: 250px; height: 5px;">
+            Income Statement
+        </div>
+        <div class="title" style="margin: 10px; padding: 0px; float: left; width: 250px; height: 5px;">
+            Journal Lines
+        </div>
+        <div id="balance-sheet" style="margin: 10px; padding: 0px; float: left; width: 375px; height: 500px; border: 1px solid black">
+            <div id="assets" style="float: left; width: 125px; height: 500px; margin: auto; border-right: 1px solid black;">
+            </div>
+            <div id="liabilities" style="float: left; width: 249px; height: 400px; border-bottom: 1px solid black;">
+            </div>    
+            <div id="owners-equity" style="float: left; width: 249px; height: 100px;">
+            </div>    
+        </div>
+        <div id="income-statement" style="margin: 10px; float: left; width: 250px; height: 500px; border: 1px solid black">
+            <div id="revenue" style="float: left; width: 250px; height: 200px; border-bottom: 1px solid black;"></div>    
+            <div id="cos" style="float: left; width: 250px; height: 150px; border-bottom: 1px solid black;"></div>    
+            <div id="expense" style="float: left; width: 250px; height: 148px; border-bottom: 1px solid black;"></div>    
+        </div>
+        <div id="journal-lines" style="padding: 5px; margin: 10px; float: left; width: 250px; height: 500px; border: 1px solid black">
+        </div>
+<pre id="csvdata">
+je_label,account_type,account,dr_cr,amount
+Book Revenue,A,Trade A/R,dr,150
+Book Revenue,R,HW Revenue,cr,100
+Book Revenue,R,SW Revenue,cr,50
+Book COS,C,HW COS,dr,75
+Book COS,A,Inventory,cr,75
+Receive Cash,A,Cash,dr,150
+Receive Cash,A,Trade A/R,cr,150
+Cash Recognition,A,Cash,dr,200
+Cash Recognition,R,HW Revenue,cr,200
+</pre>
+        <script>
+            function make_safe(text) {
+                return text.replace(/[^A-Za-z0-9-_]/g, '');
+            }
+            var raw = d3.select("#csvdata").text();
+            var parsed = d3.csv.parse(raw);
+
+            // Add attributes to all lines: visible labels and css classes
+            function add_attributes(d, i) {
+                // For each je_line
+                d.je_line_class = "(" + String.fromCharCode(65+i) + ")";
+                d.je_line_label = d.je_line_class;
+
+                // For each JE (note je_label already determined)
+                d.je_class = "je_" + make_safe(d.je_label);
+
+                // For each account (note account already determined)
+                d.account_class = "account_" + make_safe(d.account);
+
+                return d;
+            }
+            parsed = parsed.map(add_attributes)
+
+            // Add JE tables
+            var je_data = d3.nest().key(function(d) { return d.je_label; }).entries(parsed)
+            var je_tables = d3.select('#journal-lines')
+                .selectAll('table')
+                .data(je_data)
+                .enter()
+                .append('table')
+                .classed('jes', true);
+
+            // Add class value for every je table
+            var je_classes = d3.set(parsed.map(function(d) {return d.je_class;})).values();
+            function add_class_je(d) {
+                return je_tables.classed(je_class, function(d) { return je_class === d.je_class; });
+            }
+            for (var i = 0; i < je_classes.length; i++) {
+                je_tables = je_tables.classed(je_classes[i], function(d) { return d.values[0].je_class === je_classes[i]; })
+            }
+
+            // Add JE label for each JE
+            je_tables.append('thead')
+                .append('tr')
+              .append('th')
+                .attr('colspan', '4')
+                .text(function(d) { return d.values[0].je_label; });
+
+            // Add JE lines to tables
+            je_lines = je_tables.append('tbody')
+                .selectAll('tr')
+                .data(function(d) { return d.values; })
+                .enter()
+                .append('tr')
+                .property('className', function(d) { return d.account_class + " " + d.je_line_class; });
+
+            // Add JE contents to lines
+            je_lines.selectAll('td')
+                .data(function(d) {
+                    if (d.dr_cr === 'dr') {
+                        return [d.account, d.amount, null, d.je_line_label];
+                    } else {
+                        return [d.account, null, d.amount, d.je_line_label];
+                    }
+                })
+                .enter()
+                .append('td')
+                .text(function(d) { return d; });
+
+                /*
+            // Attempt to do mouseover effects
+           d3.selectAll('.jes tbody tr').on("mouseover",
+                function() {
+                    this.className.split().forEach(function(classname) {
+                        classname = '.' + classname;
+                        d3.selectAll(classname).attr("fill", "yellow");
+                    });
+                }
+            );
+            */
+
+            // Create t account tables
+            var div_key = {"A": "assets",
+                           "L": "liabilities",
+                           "E": "owners-equity",
+                           "R": "revenue",
+                           "C": "cos",
+                           "E": "expense"};
+
+            function create_taccounts(class_selector, account_type) {
+                fs_block = d3.select(class_selector)
+                    .selectAll('table')
+                    .data(d3.nest()
+                        .key(function(d) { return d.account; })
+                        .entries(parsed.filter(function(o) { return o.account_type === account_type; })))
+                    .enter()
+                    .append('table')
+                    .property('className', function(d) { return "taccount " + d.values[0].account_class; });
+
+                fs_block.append('thead')
+                    .append('tr')
+                  .append('th')
+                    .attr('colspan', '2')
+                    .text(function(d) {return d.key;});
+
+                var taccount_lines = fs_block.append('tbody').selectAll('tr')
+                    .data(function(d) { return d.values; })
+                    .enter()
+                    .append('tr')
+                    .selectAll('td')
+                    .data(function (d) {
+                        if (d.dr_cr === 'dr') {
+                            return [d.je_line_label + " " + d.amount, null];
+                        } else {
+                            return [null, d.amount + " " + d.je_line_label];
+                        }
+                    })
+                    .enter()
+                    .append('td')
+                    .text(function(d) { return d; });
+            }
+            create_taccounts('#assets', 'A');
+            create_taccounts('#liabilities', 'L');
+            create_taccounts('#owners-equity', 'E');
+            create_taccounts('#revenue', 'R');
+            create_taccounts('#cos', 'C');
+            create_taccounts('#expense', 'E');
+        </script>
+    </body>
+</html>
