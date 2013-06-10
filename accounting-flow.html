@@ -232,6 +232,22 @@ Cash Recognition,R,HW Revenue,cr,200
             create_taccounts('#revenue', 'R');
             create_taccounts('#cos', 'C');
             create_taccounts('#expense', 'E');
+
+            function create_joint_mouse_effects(class_name) {
+                class_name = '.' + class_name;
+                d3.selectAll(class_name)
+                    .on('mouseover', function() { 
+                        d3.selectAll(class_name)
+                            .style('background-color', 'lightgreen');
+                        })
+                    .on('mouseout', function() { 
+                        d3.selectAll(class_name)
+                            .style('background-color', null);
+                        });
+            }
+            
+            var journal_lines = parsed.map(function(o) {return o.je_line_class;});
+            journal_lines.forEach(create_joint_mouse_effects);
         </script>
     </body>
 </html>
