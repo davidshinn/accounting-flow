@@ -5,7 +5,7 @@
         <title>Accounting Flow</title>
         <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
         <style>
-            #csvdata {
+            #csvdata, #je_header {
                 display: none;
             }
             table {
@@ -122,12 +122,28 @@ Equity Check,OE,Equity,cr,7
 Equity Check,OE,Equity 2,dr,6
 Equity Check,OE,Equity 2,cr,6
 </pre>
+<pre id="je_header">
+je_label,title
+Buy Inventory,Initial Purchase of Inventory
+Book Revenue with deferral,This invoice has a deferral component
+Book COS,This is related to booking the inventory release and cogs
+Receive Cash,Collecting on the invoice
+External Commission,Isolated example on external commissions
+Equity Check,Just a je to illustrate something hitting Equity
+</pre>
         <script>
             function make_safe(text) {
                 return text.replace(/[^A-Za-z0-9-_]/g, '');
             }
             var raw = d3.select("#csvdata").text();
             var parsed = d3.csv.parse(raw);
+
+            // associative array storing longer title for each je
+            var raw_header = d3.select("#je_header").text();
+            var parsed_header = d3.csv.parse(raw_header);
+            var je_title_lookup = {}
+            parsed_header.forEach(function(o) { je_title_lookup[o.je_label] = o.title; })
+
 
             // Add attributes to all lines: visible labels and css classes
             function add_attributes(d, i) {
@@ -147,7 +163,8 @@ Equity Check,OE,Equity 2,cr,6
             parsed = parsed.map(add_attributes)
 
             // Add JE tables
-            var je_data = d3.nest().key(function(d) { return d.je_label; }).entries(parsed)
+            var je_data = d3.nest().key(function(d) { return d.je_label; }).entries(parsed);
+            je_data = je_data.map(function(o) { o['title'] = je_title_lookup[o.key]; return o; });
             var je_tables = d3.select('#journal-lines')
                 .selectAll('table')
                 .data(je_data)
@@ -169,7 +186,8 @@ Equity Check,OE,Equity 2,cr,6
                 .append('tr')
               .append('th')
                 .attr('colspan', '4')
-                .text(function(d) { return d.values[0].je_label; });
+                .attr('title', function(d) { return d.title; })
+                .text(function(d) { return d.key; });
 
             // Add JE lines to tables
             je_lines = je_tables.append('tbody')
