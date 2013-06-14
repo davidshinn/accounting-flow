@@ -292,6 +292,39 @@ Equity Check,Just a je to illustrate something hitting Equity
             }
             taccount_sums.forEach(add_footer);
 
+            // Adding financial statement section subtotal
+            fs_sums = d3.nest()
+                .key(function(d) { return d.account_type; })
+                .rollup(function(leaves) {
+                    return {'total_amount': d3.sum(leaves,
+                        function(d) {
+                            if (d.dr_cr === 'cr') {
+                                return -1*d.amount;
+                            } else {
+                                return d.amount;
+                            }
+                    })}
+                })
+                .entries(parsed);
+            fs_sums.forEach(function(o) {
+                d3.select('#' + div_key[o.key])
+                    .selectAll('div')
+                    .data([o.values])
+                    .enter()
+                  .append('div')
+                    .style('position', 'absolute')
+                    .style('bottom', '0')
+                    .style('text-align', 'right')
+                    .style('width', '98%')
+                    .text(function(d) {
+                        if (d.total_amount < 0) {
+                            return 'Net Change CR ' + Math.abs(d.total_amount);
+                        } else {
+                            return 'Net Change DR ' + Math.abs(d.total_amount);
+                        }
+                    });
+            });
+
             function create_joint_mouse_effects(class_name) {
                 class_name = '.' + class_name;
                 d3.selectAll(class_name)
