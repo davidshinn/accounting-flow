@@ -326,6 +326,28 @@ Equity Check,Just a je to illustrate something hitting Equity
                 .entries(parsed)
                 .map(function(o) { return o.key; });
             account_taccounts.forEach(create_account_mouse_effects);
+
+            // Create highlight effects when mouse over je header
+            var je_class_lookup = {};
+            parsed.forEach(function(o) { je_class_lookup[o.je_class] = []; })
+            parsed.forEach(function(o) { je_class_lookup[o.je_class].push(o.je_line_class); })
+
+            d3.entries(je_class_lookup).forEach(function(o) {
+                d3.select('.jes.' + o.key + ' th')
+                    .on('mouseover', function() {
+                        d3.select(this).style('background-color', 'lightgreen');
+                        o.value.forEach(function(p) {
+                            d3.select('.taccount .' + p).style('background-color', 'lightgreen');
+                        });
+                    })
+                    .on('mouseout', function() {
+                        d3.select(this).style('background-color', null);
+                        o.value.forEach(function(p) {
+                            d3.select('.taccount .' + p).style('background-color', null);
+                        });
+                    });
+            });
+
         </script>
     </body>
 </html>
