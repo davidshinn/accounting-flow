@@ -38,7 +38,12 @@ and
 
     </pre>
 
-in a comma separated format:
+in a comma separated format.  For example
+
+    Buy Inventory,A,Inventory,dr,300
+
+adds a journal line for a journal entry labeled **Buy Inventory**, that debits (**dr**)
+an asset account (**A**) called **Inventory** for **300**
 
 * je_label: Unique text identifying the distinct journal entry,
   must be the same for journal lines in the same journal entry
